@@ -1,3 +1,6 @@
+# generates the ascii art
+
+import os
 import sys
 import time
 from PIL import Image
@@ -5,6 +8,9 @@ from PIL import Image
 # Image File
 img_file = 'aqua/1.gif'
 img = Image.open(img_file)
+
+# terminal size
+size = os.get_terminal_size()
 
 # different ascii chars for mapping
 asciiChars = '@#S%?*+;:,. '
@@ -26,8 +32,10 @@ for frame in range(img.n_frames):
     tempImg = Image.new('RGB', img.size)
     tempImg.paste(img)
 
-    # resize height to height/2 cuz 1 char heght is 2 char width long
-    tempImg = tempImg.resize((img.size[0]//2, img.size[1]//4))
+    # resize height to width*2 cuz 1 char heght is 2 char width long
+    # tempImg = tempImg.resize((int(size.lines/img.size[1] * img.size[0])*2,  size.lines))
+    tempImg = tempImg.resize((img.size[0]*2,img.size[1]))
+    tempImg.thumbnail(((size.columns*2)-1, size.lines-1))
 
     for y in range(tempImg.size[1]):
         for x in range(tempImg.size[0]):
@@ -48,7 +56,7 @@ sys.stdout.write(chr(27)+'[2j' + '\033c \x1bc')
 
 while 1:
     for i in range(len(asciiAqua)):
-        print(asciiAqua[i])
+        sys.stdout.write(asciiAqua[i])
 
-        time.sleep(0.1)
+        # time.sleep(0.1)
         sys.stdout.write(chr(27)+'[2j' + '\033c \x1bc')
