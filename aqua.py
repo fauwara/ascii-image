@@ -1,62 +1,47 @@
 # generates the ascii art
 
-import os
-import sys
-import time
 from PIL import Image
 
-# Image File
-img_file = 'aqua/1.gif'
-img = Image.open(img_file)
+def aqua( gif, size, asciiChars):
 
-# terminal size
-size = os.get_terminal_size()
+    # convert rgb pixel value to single int with gretscale value
+    def greyScale(rgb):
+        return (rgb[0] + rgb[1] + rgb[2])/3
 
-# different ascii chars for mapping
-asciiChars = '@#S%?*+;:,. '
-# asciiChars = " .:-=+*#%@"
-# asciiChars = ' .,:;+*?%S#@'
+    # open the gif
+    img_file = f'aqua/{gif}.gif'
+    img = Image.open(img_file)
 
-def greyScale(rgb):
-    return (rgb[0] + rgb[1] + rgb[2])/3
+    # ascii art will be stored here in an array of ascii arts of single frames from the gifs
+    asciiAqua = []
 
-asciiAqua = []
+    # frame is an integer that is used to iterate through the different frames in a gif
+    print('generating ascii aqua...')
+    for frame in range(img.n_frames):
+        frameAscii = ''
+        img.seek(frame)
 
-# frame is an integer that is used to iterate through the different frames in a gif
-print('generating ascii aqua...')
-for frame in range(img.n_frames):
-    asciiAquaFrame = ''
-    img.seek(frame)
+        # createing a new image to work on cause gifPlugin SUCKS ig idk
+        tempImg = Image.new('RGB', img.size)
+        tempImg.paste(img)
 
-    # createing a new image to work on cause gifPlugin SUCKS ig idk
-    tempImg = Image.new('RGB', img.size)
-    tempImg.paste(img)
+        # resize height to width*2 cuz 1 char heght is 2 char width long
+        # tempImg = tempImg.resize((int(size.lines/img.size[1] * img.size[0])*2,  size.lines))
+        tempImg = tempImg.resize((img.size[0]*2,img.size[1]))
+        tempImg.thumbnail(((size[0]*2)-1, size[1]-1))
 
-    # resize height to width*2 cuz 1 char heght is 2 char width long
-    # tempImg = tempImg.resize((int(size.lines/img.size[1] * img.size[0])*2,  size.lines))
-    tempImg = tempImg.resize((img.size[0]*2,img.size[1]))
-    tempImg.thumbnail(((size.columns*2)-1, size.lines-1))
+        for y in range(tempImg.size[1]):
+            for x in range(tempImg.size[0]):
 
-    for y in range(tempImg.size[1]):
-        for x in range(tempImg.size[0]):
+                rgb = greyScale(tempImg.getpixel((x,y)))
 
-            rgb = greyScale(tempImg.getpixel((x,y)))
+                for i in range(len(asciiChars)):
+                    if rgb <= ((255/len(asciiChars)) * (i+1)):
+                        frameAscii += asciiChars[i]
+                        # sys.stdout.write(asciiChars[i])
+                        break
+            frameAscii += '\n'
 
-            for i in range(len(asciiChars)):
-                if rgb <= ((255/len(asciiChars)) * (i+1)):
-                    asciiAquaFrame += asciiChars[i]
-                    # sys.stdout.write(asciiChars[i])
-                    break
-        asciiAquaFrame += '\n'
+        asciiAqua.append(frameAscii)
 
-    asciiAqua.append(asciiAquaFrame)
-
-# clear screen before printing art
-sys.stdout.write(chr(27)+'[2j' + '\033c \x1bc')
-
-while 1:
-    for i in range(len(asciiAqua)):
-        sys.stdout.write(asciiAqua[i])
-
-        # time.sleep(0.1)
-        sys.stdout.write(chr(27)+'[2j' + '\033c \x1bc')
+    return asciiAqua
